@@ -21,6 +21,8 @@ public class SecureServerServlet extends HttpServlet {
 		// Actual logic goes here.
 		PrintWriter out = response.getWriter();
 		out.println("<h1>" + message + "</h1>");
+		
+		DHKeyAgreement2 
 	}
 
 	public void destroy() {
