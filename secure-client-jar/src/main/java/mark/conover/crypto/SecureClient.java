@@ -28,20 +28,27 @@ public class SecureClient {
 	private String cookies;
 	private HttpClient client = HttpClientBuilder.create().build();
 	private static final String USER_AGENT = "Mozilla/5.0";
+	private static String PUBLIC_KEY = null;
 
 	public static void main(String[] args) throws Exception {
 		String url = "http://localhost:8080/secure-server/SecureServlet";
 		String gmail = "https://mail.google.com/mail/";
+		
+		// TODO: Switch to client's public key once you have it!
+		PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDFXhbyBYhSPaf1tOJlGWWcFdrG" +
+				"A8C7xY9UmigBQdSoEdSzc+1GgYKxughwVuXEkdWq13lyfwXVxI40xPrZ7lux387t" +
+                "7yTr/+mDYQOjdp8qvZ5coUa901iTnVJSFulhK+/0PFnYYAZ1wwgo4bkrStMBtJw1" +
+                "7jSpjOT3SDSLgTbOiQIDAQAC";
 
 		// make sure cookies is turn on
 		CookieHandler.setDefault(new CookieManager());
 
 		SecureClient http = new SecureClient();
 
-		String page = http.GetPageContent(url);
-
-		List<NameValuePair> postParams = http.getFormParams(page, "username",
-				"password");
+		//String page = http.GetPageContent(url);
+		
+		List<NameValuePair> postParams = new ArrayList<NameValuePair>();
+		postParams.add(new BasicNameValuePair("publicKey", PUBLIC_KEY));
 
 		http.sendPost(url, postParams);
 
@@ -57,29 +64,36 @@ public class SecureClient {
 		HttpPost post = new HttpPost(url);
 
 		// add header
-		post.setHeader("User-Agent", USER_AGENT);
+//		post.setHeader("Host", "accounts.google.com");
+//		post.setHeader("User-Agent", USER_AGENT);
+//		post.setHeader("Accept", 
+//	             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+//		post.setHeader("Accept-Language", "en-US,en;q=0.5");
+//		post.setHeader("Cookie", getCookies());
+//		post.setHeader("Connection", "keep-alive");
+//		post.setHeader("Referer", "https://accounts.google.com/ServiceLoginAuth");
+//		post.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-		List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-		urlParameters.add(new BasicNameValuePair("sn", "C02G8416DRJM"));
-		urlParameters.add(new BasicNameValuePair("cn", ""));
-		urlParameters.add(new BasicNameValuePair("locale", ""));
-		urlParameters.add(new BasicNameValuePair("caller", ""));
-		urlParameters.add(new BasicNameValuePair("num", "12345"));
-
-		post.setEntity(new UrlEncodedFormEntity(urlParameters));
+		post.setEntity(new UrlEncodedFormEntity(postParams));
 
 		HttpResponse response = client.execute(post);
-		System.out.println("Response Code : "
-				+ response.getStatusLine().getStatusCode());
 
-		BufferedReader rd = new BufferedReader(new InputStreamReader(response
-				.getEntity().getContent()));
+		int responseCode = response.getStatusLine().getStatusCode();
+
+		System.out.println("\nSending 'POST' request to URL : " + url);
+		System.out.println("Post parameters : " + postParams);
+		System.out.println("Response Code : " + responseCode);
+
+		BufferedReader rd = new BufferedReader(
+	                new InputStreamReader(response.getEntity().getContent()));
 
 		StringBuffer result = new StringBuffer();
 		String line = "";
 		while ((line = rd.readLine()) != null) {
 			result.append(line);
 		}
+
+		System.out.println(result.toString());
 	}
 
 	private String GetPageContent(String url) throws Exception {

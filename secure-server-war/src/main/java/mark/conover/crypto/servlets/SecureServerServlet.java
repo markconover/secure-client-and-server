@@ -37,7 +37,7 @@ public class SecureServerServlet extends HttpServlet {
 			throws ServletException, IOException {
 		
 		LOG.debug("doPost() method has been called.");
-		String publicKey = req.getParameter("publickey");
+		String publicKey = req.getParameter("publicKey");
 		LOG.debug("publicKey is: " + publicKey);	
 		
 	}
