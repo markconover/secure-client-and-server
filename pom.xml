@@ -4,4 +4,9 @@
   <artifactId>secure-client-and-server-master</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
+  
+  <modules>
+    <module>secure-client-jar</module>
+    <module>secure-server-war</module>
+  </modules>
 </project>

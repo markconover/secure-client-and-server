@@ -171,7 +171,7 @@
 		<url-pattern>*.jsp</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>SecureServer</servlet-name>
+		<servlet-name>secure-server</servlet-name>
 		<url-pattern>/secure-server</url-pattern>
 	</servlet-mapping>
 	

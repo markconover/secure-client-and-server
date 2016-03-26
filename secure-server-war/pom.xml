@@ -11,38 +11,6 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<tomcat.download.url>http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.59/bin/apache-tomcat-7.0.59.zip</tomcat.download.url>
-		<!-- The integration test resources directory. -->
-		<integrationtest.resources>${basedir}/src/integrationtest/resources</integrationtest.resources>
-		<integrationtest.resources.install>${integrationtest.resources}/installation</integrationtest.resources.install>
-		<integrationtest.resources.tomcat.install>${integrationtest.resources.install}/tomcat</integrationtest.resources.tomcat.install>
-		<integrationtest.resources.tomcat.installDir>${project.build.directory}/tomcat</integrationtest.resources.tomcat.installDir>
-
-		<!-- Deploy Ports -->
-		<cargo.rmi.port>9993</cargo.rmi.port>
-		<debug.port>8001</debug.port>
-		<shutdown.port>9995</shutdown.port>
-		<ajp.port>8009</ajp.port>
-		<http.port>8080</http.port>
-		<https.port>8443</https.port>
-
-		<tomcat.home>${project.build.directory}/opt/tomcat/deploy</tomcat.home>
-		<tomcat.server.xml>http/server.xml</tomcat.server.xml>
-		<tomcat.clientauth>false</tomcat.clientauth>
-		<cargo.plugin.deploy.goal>run</cargo.plugin.deploy.goal>
-		<cargo.jvmargs>
-			-Xms912m
-			-Xmx1024m
-			-XX:MaxPermSize=128m
-			-Xdebug
-			-Xrunjdwp:transport=dt_socket,address=${debug.port},suspend=n,server=y
-			-Xnoagent
-			-Djava.compiler=NONE
-			-Djava.security.auth.login.config=${basedir}/src/main/resources/jaas.config
-		</cargo.jvmargs>
-	</properties>
-
     <dependencies>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -102,76 +70,15 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.6</version>
-				<executions>
-					<execution>
-						<id>copy-tomcat-installation-resources</id>
-						<!-- here the phase you need -->
-						<phase>install</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${integrationtest.resources.tomcat.installDir}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${integrationtest.resources.tomcat.install}</directory>
-									<includes>
-										<include>${tomcat.server.xml}</include>
-									</includes>
-									<filtering>true</filtering>
-								</resource>
-								<resource>
-									<directory>${integrationtest.resources.tomcat.install}</directory>
-									<excludes>
-										<exclude>${tomcat.server.xml}</exclude>
-									</excludes>
-									<filtering>false</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.cargo</groupId>
-				<artifactId>cargo-maven2-plugin</artifactId>
-				<version>1.2.1</version>
-				<configuration>
-					<!-- Container configuration -->
-					<container>
-						<containerId>tomcat7x</containerId>
-						<zipUrlInstaller>
-							<url>${tomcat.download.url}</url>
-							<downloadDir>${project.build.directory}/downloads</downloadDir>
-							<extractDir>${project.build.directory}/extracts</extractDir>
-						</zipUrlInstaller>
-						<output>${tomcat.home}/logs/container.log</output>
-						<log>${project.build.directory}/cargo/logs/cargo.log</log>
-					</container>
-					<configuration>
-						<type>standalone</type>
-						<home>${tomcat.home}</home>
-						<properties>
-							<cargo.jvmargs>${cargo.jvmargs}</cargo.jvmargs>
-							<cargo.rmi.port>${cargo.rmi.port}</cargo.rmi.port>
-							<cargo.tomcat.ajp.port>${ajp.port}</cargo.tomcat.ajp.port>
-							<cargo.servlet.port>${http.port}</cargo.servlet.port>
-							<cargo.standalone.ignoreNonExistingProperties>true</cargo.standalone.ignoreNonExistingProperties>
-							<cargo.servlet.port>80</cargo.servlet.port>
-							<!-- <cargo.servlet.users>consumer:pwd:consumer|producer:pwd:consumer,producer|mangui:pwd:manager-gui</cargo.servlet.users> -->
-						</properties>
-						<configfiles>
-							<configfile>
-								<file>${integrationtest.resources.tomcat.installDir}/${tomcat.server.xml}</file>
-								<todir>conf</todir>
-							</configfile>
-						</configfiles>
-					</configuration>
-				</configuration>
-			</plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <url>http://localhost:8080/manager</url>
+                    <path>/${project.artifactId}</path>
+                    <httpPort>80</httpPort>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 </project>
