@@ -154,7 +154,7 @@
 		<load-on-startup>3</load-on-startup>
 	</servlet>
 	<servlet>
-		<servlet-name>secure-server</servlet-name>
+		<servlet-name>SecureServlet</servlet-name>
 		<servlet-class>mark.conover.crypto.servlets.SecureServerServlet</servlet-class>
 	</servlet>
 
@@ -171,8 +171,8 @@
 		<url-pattern>*.jsp</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>secure-server</servlet-name>
-		<url-pattern>/secure-server</url-pattern>
+		<servlet-name>SecureServlet</servlet-name>
+		<url-pattern>/SecureServlet</url-pattern>
 	</servlet-mapping>
 	
 </web-app>

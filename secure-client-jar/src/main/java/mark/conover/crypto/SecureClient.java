@@ -30,7 +30,7 @@ public class SecureClient {
 	private static final String USER_AGENT = "Mozilla/5.0";
 
 	public static void main(String[] args) throws Exception {
-		String url = "https://accounts.google.com/ServiceLoginAuth";
+		String url = "http://localhost:8080/secure-server/SecureServlet";
 		String gmail = "https://mail.google.com/mail/";
 
 		// make sure cookies is turn on
@@ -45,8 +45,8 @@ public class SecureClient {
 
 		http.sendPost(url, postParams);
 
-		String result = http.GetPageContent(gmail);
-		System.out.println(result);
+		//String result = http.GetPageContent(gmail);
+		//System.out.println(result);
 
 		System.out.println("Done");
 	}
