@@ -32,7 +32,7 @@ public class SecureClient {
 
 	public static void main(String[] args) throws Exception {
 		String url = "http://localhost:8080/secure-server/SecureServlet";
-		String gmail = "https://mail.google.com/mail/";
+		//String gmail = "https://mail.google.com/mail/";
 		
 		// TODO: Switch to client's public key once you have it!
 		PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDFXhbyBYhSPaf1tOJlGWWcFdrG" +
