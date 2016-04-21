@@ -1,11 +1,10 @@
 The client/server encrypt messages a shared AES symmetric key via the following
 process:
 1. Server generates public key and a private key using openssl
-    * http://gnuwin32.sourceforge.net/packages/openssl.htm
     * Cygwin OpenSSL version 1.0.2c 12 Jun 2015 (Mark-Desktop = server)
         ** Private key
-            *** OpenSSL> genrsa -des3 -out server.key 1024
-            *** passphrase = "password" (without quotes)
+            *** OpenSSL> genrsa -des3 -out server-private-key.key 1024
+            *** passphrase = "changeit" (without quotes)
             *** -----BEGIN RSA PRIVATE KEY-----
                 Proc-Type: 4,ENCRYPTED
                 DEK-Info: DES-EDE3-CBC,D74B899844498677
@@ -24,8 +23,9 @@ process:
                 gTE87pIrsClE+R4IpEDJB43vuUiqoZtJ8m3nlcYfxiqyTgM9Gsvc8VnfTZ/a4ktR
                 3ETgfa/1nT3msFzo4KRZMmxfMst5vpX2xlvpd7deLwolNKh7pUp/5Q==
                 -----END RSA PRIVATE KEY-----
-        ** Public key (generate a public key from the private key "server.key")
-            *** $ openssl rsa -in server.key -pubout
+        ** Public key (generate a public key from the private key 
+           "server-private-key.key")
+            *** $ openssl rsa -in server-private-key.key -pubout > server-public-key.pub
                 Enter pass phrase for server.key:
                 writing RSA key
                 -----BEGIN PUBLIC KEY-----
@@ -37,7 +37,16 @@ process:
             
             
 2. Client generates public key and a private key using openssl.
-    * http://gnuwin32.sourceforge.net/packages/openssl.htm
+    * Cygwin OpenSSL version 1.0.2c 12 Jun 2015 (Mark-Desktop = client)
+        ** Private key
+            *** OpenSSL> genrsa -des3 -out client-private-key.key 1024
+            *** passphrase = "changeit" (without quotes)
+                ** Public key (generate a public key from the private key 
+        ** Public key (generate a public key from the private key 
+           "client-private-key.key"
+            *** $ openssl rsa -in client-private-key.key -pubout > client-public-key.pub
+        
+    
 3. Server sends the server's public key to the client.
 4. Client encrypts the client's public key with the server's public key and
    sends it to the server.
