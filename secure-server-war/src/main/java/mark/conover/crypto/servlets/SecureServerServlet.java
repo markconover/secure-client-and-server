@@ -1,10 +1,17 @@
 package mark.conover.crypto.servlets;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import mark.conover.crypto.config.SecureServerConfig;
+
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +44,17 @@ public class SecureServerServlet extends HttpServlet {
 			throws ServletException, IOException {
 		
 		LOG.debug("doPost() method has been called.");
-		String publicKey = req.getParameter("publicKey");
-		LOG.debug("publicKey is: " + publicKey);	
+		String clientPublicKey = req.getParameter("publicKey");		
 		
+		LOG.debug("Client's publicKey is: " + clientPublicKey);			
+		
+		// Send the server's public key back
+        BufferedOutputStream bos = new BufferedOutputStream(
+                resp.getOutputStream());
+        IOUtils.write("server public key: " + 
+            SecureServerConfig.SECURE_SERVER_PUBLIC_KEY, bos, "UTF-8");
+        bos.flush();
+        bos.close();		
 	}
 
 	public void destroy() {

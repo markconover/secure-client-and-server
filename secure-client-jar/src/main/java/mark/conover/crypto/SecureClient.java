@@ -35,10 +35,11 @@ public class SecureClient {
 		//String gmail = "https://mail.google.com/mail/";
 		
 		// TODO: Switch to client's public key once you have it!
-		PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDFXhbyBYhSPaf1tOJlGWWcFdrG" +
-				"A8C7xY9UmigBQdSoEdSzc+1GgYKxughwVuXEkdWq13lyfwXVxI40xPrZ7lux387t" +
-                "7yTr/+mDYQOjdp8qvZ5coUa901iTnVJSFulhK+/0PFnYYAZ1wwgo4bkrStMBtJw1" +
-                "7jSpjOT3SDSLgTbOiQIDAQAC";
+		PUBLIC_KEY = 
+	        "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCf55mXwWwNkVEKRu3WC5ApR2JR" +
+            "W3V6s9a4Rdl5EVj3BOzxPVGkp9MN5lLuPtFLIvH2iqRq4iHEZAc0BNxyY6V8LoxE" +
+            "4/OilsjAxShw9HZLqR6nv5obZGGnCY4ot1mTntxmDYf0oUjCXCdntT3VhoeVuIUu" +
+            "jV6vhAG6ZtpO17ZVfwIDAQAB";
 
 		// make sure cookies is turn on
 		CookieHandler.setDefault(new CookieManager());
@@ -50,7 +51,10 @@ public class SecureClient {
 		List<NameValuePair> postParams = new ArrayList<NameValuePair>();
 		postParams.add(new BasicNameValuePair("publicKey", PUBLIC_KEY));
 
-		http.sendPost(url, postParams);
+		String responseText = http.sendPost(url, postParams);
+		String serverPublicKey = responseText.split(":") [1].trim();
+		
+		System.out.println("Server's public key is: " + serverPublicKey);
 
 		//String result = http.GetPageContent(gmail);
 		//System.out.println(result);
@@ -58,7 +62,7 @@ public class SecureClient {
 		System.out.println("Done");
 	}
 
-	private void sendPost(String url, List<NameValuePair> postParams) 
+	private String sendPost(String url, List<NameValuePair> postParams) 
 			throws ClientProtocolException, IOException {
 		
 		HttpPost post = new HttpPost(url);
@@ -93,7 +97,10 @@ public class SecureClient {
 			result.append(line);
 		}
 
-		System.out.println(result.toString());
+		String responseText = result.toString();
+		System.out.println("Response from server:" + responseText);
+		
+		return responseText;
 	}
 
 	private String GetPageContent(String url) throws Exception {

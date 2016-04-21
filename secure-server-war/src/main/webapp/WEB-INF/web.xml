@@ -4,6 +4,10 @@
 
 <web-app>
 	<display-name>Secure Server</display-name>
+ 
+    <listener>
+        <listener-class>mark.conover.crypto.config.SecureServerConfig</listener-class>
+    </listener>
 	
 	<!-- Servlets -->
 	<!-- The default servlet for all web applications, that serves static -->

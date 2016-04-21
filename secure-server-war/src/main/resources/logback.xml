@@ -29,7 +29,7 @@
     <!-- Note: INFO log level includes info, warn, error log statements
          Reference: http://logback.qos.ch/manual/architecture.html 
     -->
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="FILE" />
 	</root>
