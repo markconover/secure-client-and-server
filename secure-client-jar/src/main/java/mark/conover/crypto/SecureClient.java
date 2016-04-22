@@ -14,10 +14,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.lang.model.util.Elements;
-
 import mark.conover.crypto.config.LoggingConfig;
-import mark.conover.crypto.servlets.SecureServerServlet;
 import mark.conover.crypto.util.SecureClientUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -32,6 +29,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +97,8 @@ public class SecureClient {
 
 		//---------------------------------------------------------------------
 		
+		// Write the server's public key to a temporary file so that it's 
+		// easier to use RSAEncryptionUtil.java
 		
 		// Encrypt the string using the server's public key
 		String prefix = "server-public-key";
@@ -111,7 +114,7 @@ public class SecureClient {
             new FileInputStream(serverPublicKeyFile));
 	    final PublicKey serverPublicKey = (PublicKey) inputStream.readObject();
 	    final byte[] cipherTextBytes = RSAEncryptionUtil.encrypt(
-            "AES Symmetric Key: " + AES_128_SYMMETRIC_KEY, serverPublicKey);
+            "AES Symmetric Key:" + AES_128_SYMMETRIC_KEY, serverPublicKey);
         SecureClientUtil.safeClose(inputStream);
         
         postParams = new ArrayList<NameValuePair>();
@@ -151,7 +154,6 @@ public class SecureClient {
 		post.setEntity(new UrlEncodedFormEntity(postParams));
 		
 		if (bodyContent != null) {
-		    LOG.debug
             HttpEntity entity = new ByteArrayEntity(
                 bodyContent.getBytes("UTF-8"));
             post.setEntity(entity);
