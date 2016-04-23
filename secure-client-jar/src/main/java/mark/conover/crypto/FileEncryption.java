@@ -6,6 +6,8 @@ import java.security.spec.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
+import org.apache.commons.io.IOUtils;
+
 /**
  * Utility class for encrypting/decrypting files.
  * @author Michael Lones
@@ -100,10 +102,13 @@ public class FileEncryption {
 	public void decrypt(File in, File out) throws IOException, InvalidKeyException {
 		aesCipher.init(Cipher.DECRYPT_MODE, aeskeySpec);
 		
+		
+		
 		CipherInputStream is = new CipherInputStream(new FileInputStream(in), aesCipher);
 		FileOutputStream os = new FileOutputStream(out);
 		
-		copy(is, os);
+		IOUtils.copy(is, os);
+		//copy(is, os);
 		
 		is.close();
 		os.close();

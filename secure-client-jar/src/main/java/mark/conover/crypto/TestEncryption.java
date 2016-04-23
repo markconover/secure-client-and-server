@@ -2,6 +2,7 @@ package mark.conover.crypto;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
 public class TestEncryption {
@@ -12,14 +13,20 @@ public class TestEncryption {
 			FileEncryption fileEncryption = new FileEncryption();
 			fileEncryption.makeKey();
 			
+			// Print out AES key
+			String str = new String(fileEncryption.aesKey, StandardCharsets.UTF_8);
+			System.out.println("AES key is: " + str);
+			
 			// Encrypt AES key file w/ RSA public key
 			File encryptedKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\encrypted-file.key");
-			File publicKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\public.der");
+			File publicKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\public_1024.der");
+			//File publicKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\public.der");
 			fileEncryption.saveKey(encryptedKeyFile, publicKeyFile);
 			
 			// Decrypt AES key file w/ RSA private key
 			File unencryptedFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\unencrypted-file.key");
-			File privateKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\private.der");
+			File privateKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\private_1024.der");
+			//File privateKeyFile = new File("C:\\Users\\Mark-Desktop\\git\\secure-client-and-server\\secure-client-jar\\src\\main\\resources\\rsa-keys\\private.der");
 			fileEncryption.loadKey(encryptedKeyFile, privateKeyFile);
 			fileEncryption.decrypt(encryptedKeyFile, unencryptedFile);
 			
@@ -29,13 +36,15 @@ public class TestEncryption {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			System.out.println("yo");
 		}
 		
 		System.out.println("Done!");
 		
 //		To use the code, you need corresponding public and private RSA keys. RSA keys can be generated using the open source tool OpenSSL. However, you have to be careful to generate them in the format required by the Java encryption libraries. To generate a private key of length 2048 bits:
 //
-//			openssl genrsa -out private.pem 2048
+//			openssl genrsa -out private.pem 2048 (NOTE: Might have to do 1024 to prevent "javax.crypto.BadPaddingException: Given final block not properly padded" exception)
 //			To get it into the required (PKCS#8, DER) format:
 //
 //			openssl pkcs8 -topk8 -in private.pem -outform DER -out private.der -nocrypt
