@@ -159,10 +159,13 @@ public class SecureClient {
             // TODO: Send messages to server now but encrypt them using 
             //       AES128.java and the AES symmetric key.
 
-			
-//			responseText = http.sendPost(url, postParams, 
-//					"Encrypted AES Symmetric Key:" + encryptedAesKeyString);		
+			String aesEncryptedString = AES128.encrypt("What up server?");
+			responseText = http.sendPost(url + "?aesEncryptionEnabled=yes", 
+		        postParams, aesEncryptedString);		
 			LOG.debug("Server's encrypted response is: " + responseText);
+			
+			String aesDecryptedString = AES128.decrypt(responseText);
+			LOG.debug("Server's decrypted response is: " + aesDecryptedString);
 			
         } else {
             LOG.error("Server was unable to receive AES symmetric key");

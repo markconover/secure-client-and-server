@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import mark.conover.crypto.AES128;
 import mark.conover.crypto.FileEncryption2;
 import mark.conover.crypto.config.SecureServerConfig;
 import mark.conover.crypto.util.SecureServerUtil;
@@ -61,6 +62,7 @@ public class SecureServerServlet extends HttpServlet {
 		LOG.debug("doPost() method has been called.");
 		String clientPublicKey = req.getParameter("publicKey");
 		String aesParam = req.getParameter("aesSymmetricKeyIncluded");
+		String aesEncryptionEnabled = req.getParameter("aesEncryptionEnabled");
 		
 		LOG.debug("Client's publicKey is: " + clientPublicKey);	
 		
@@ -78,7 +80,7 @@ public class SecureServerServlet extends HttpServlet {
 		// Determine if the client sent over the AES symmetric key
 		InputStream is = req.getInputStream();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] encryptedAesKeyBytes = null;
+        byte[] encryptedBytes = null;
         if (is != null) {
 
             FileOutputStream fos = null;
@@ -96,7 +98,7 @@ public class SecureServerServlet extends HttpServlet {
                     bytesRead = is.read(aByte);
                 } while (bytesRead != -1);
 
-                encryptedAesKeyBytes = baos.toByteArray();
+                encryptedBytes = baos.toByteArray();
                 bos.write(baos.toByteArray());
                 bos.flush();
             } catch (IOException e) {
@@ -165,7 +167,7 @@ public class SecureServerServlet extends HttpServlet {
 			byte[] aesKeyBytes = null;
 			try {
 				aesKeyBytes = FileEncryption2.decrypt(serverPrivateKey, 
-					encryptedAesKeyBytes);
+					encryptedBytes);
 			} catch (InvalidKeyException | NoSuchAlgorithmException
 					| NoSuchPaddingException | IllegalBlockSizeException
 					| BadPaddingException e) {
@@ -186,16 +188,50 @@ public class SecureServerServlet extends HttpServlet {
 				// received
 		        BufferedOutputStream bos = new BufferedOutputStream(
 		                resp.getOutputStream());
-		        IOUtils.write("Encrypted message using the AES key:" + 
-		            "Got the AES symmetric key.", bos, 
+		        IOUtils.write("Got the AES symmetric key.", bos, 
 		            Charsets.UTF_8);
 		        bos.flush();
 		        
 		        SecureServerUtil.safeClose(bos);
 			}
-			
-			// TODO: Start sending messages to client but encrypting them first
-			// with the AES symmetric key
+
+		} else if (aesEncryptionEnabled != null 
+	        && aesEncryptionEnabled.equals("yes")) {
+		          
+            // Start sending messages to client but encrypting them first
+            // with the AES symmetric key
+		    String decryptedText = null;
+		    try {
+		        decryptedText = 
+	                AES128.decrypt(new String(encryptedBytes, 
+                        Charsets.UTF_8));
+            } catch (Exception e) {
+                LOG.error("Unable to decrypt the encrypted aes text.", e);
+            }
+		    
+		    if (decryptedText != null) {
+		        LOG.debug("The AES decrypted text sent by client is: '{}'", 
+	                decryptedText);
+		        
+                // Send client the answer to the client's question "What up?"
+                BufferedOutputStream bos = new BufferedOutputStream(
+                        resp.getOutputStream());
+                String aesEncryptedText = null;
+                try {
+                    aesEncryptedText = AES128.encrypt(
+                        "Nothing.  Just Chillin.  Hbu?");
+                } catch (Exception e) {
+                    LOG.error("Unable to encrypt plaintext using AES.", e);
+                }
+                
+                if (aesEncryptedText != null) {
+                    IOUtils.write(aesEncryptedText, bos, 
+                        Charsets.UTF_8);
+                    bos.flush();
+                    
+                    SecureServerUtil.safeClose(bos);
+                }
+		    }
 		} else {
 		
 			// Send the server's public key file back
