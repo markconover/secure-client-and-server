@@ -1,17 +1,16 @@
 package mark.conover.crypto.servlets;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.BadPaddingException;
@@ -65,37 +64,93 @@ public class SecureServerServlet extends HttpServlet {
 		
 		LOG.debug("Client's publicKey is: " + clientPublicKey);	
 		
-		// Determine if the client sent over the AES symmetric key
-		StringBuilder stringBuilder = new StringBuilder();
-		BufferedReader bufferedReader = null;
-		try {
-			InputStream inputStream = req.getInputStream();
-			if (inputStream != null) {
-				bufferedReader = new BufferedReader(new InputStreamReader(
-						inputStream));
-				char[] charBuffer = new char[128];
-				int bytesRead = -1;
-				while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
-					stringBuilder.append(charBuffer, 0, bytesRead);
-				}
-			} else {
-				stringBuilder.append("");
-			}
-		} catch (IOException e) {
-			LOG.error("Unable to read doPost body content.", e);
-		} finally {
-			SecureServerUtil.safeClose(bufferedReader);
-		}
-		String body = stringBuilder.toString();
 		
-		LOG.debug("Received the following doPost body content: {}", body);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		// Determine if the client sent over the AES symmetric key
+		InputStream is = req.getInputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] encryptedAesKeyBytes = null;
+        if (is != null) {
+
+            FileOutputStream fos = null;
+            BufferedOutputStream bos = null;
+            byte[] aByte = new byte[1];
+            int bytesRead;
+            try {
+                fos = new FileOutputStream(
+                    "/etc/opt/secure-server/aes-encrypted-bytes.bin");
+                bos = new BufferedOutputStream(fos);
+                bytesRead = is.read(aByte, 0, aByte.length);
+
+                do {
+                    baos.write(aByte);
+                    bytesRead = is.read(aByte);
+                } while (bytesRead != -1);
+
+                encryptedAesKeyBytes = baos.toByteArray();
+                bos.write(baos.toByteArray());
+                bos.flush();
+            } catch (IOException e) {
+                // Do exception handling
+                LOG.debug("Unable to read encrypted aes key bytes from client's post request.", e);
+            } finally {
+                SecureServerUtil.safeClose(bos);
+                SecureServerUtil.safeClose(baos);
+                SecureServerUtil.safeClose(is);
+                SecureServerUtil.safeClose(fos);
+            }
+        }
+//		StringBuilder stringBuilder = new StringBuilder();
+//		BufferedReader bufferedReader = null;
+//		try {
+//			InputStream inputStream = req.getInputStream();
+//			if (inputStream != null) {
+//				bufferedReader = new BufferedReader(new InputStreamReader(
+//						inputStream));
+//				char[] charBuffer = new char[128];
+//				int bytesRead = -1;
+//				while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+//					stringBuilder.append(charBuffer, 0, bytesRead);
+//				}
+//			} else {
+//				stringBuilder.append("");
+//			}
+//		} catch (IOException e) {
+//			LOG.error("Unable to read doPost body content.", e);
+//		} finally {
+//			SecureServerUtil.safeClose(bufferedReader);
+//		}
+//		String body = stringBuilder.toString();
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		//LOG.debug("Received the following doPost body content: {}", body);
 		
 		if (aesParam != null && aesParam.equals("yes")) {
 			
-			LOG.debug("Encrypted AES Symmetric Key from client is: '{}'", 
-				body);
-			byte[] encryptedAesKeyBytes = body.getBytes(
-				Charsets.UTF_8);
+//			LOG.debug("Encrypted AES Symmetric Key from client is: '{}'", 
+//				body);
+//			byte[] encryptedAesKeyBytes = body.getBytes(
+//				Charsets.UTF_8);
 			
 			PrivateKey serverPrivateKey = null;
 			try {

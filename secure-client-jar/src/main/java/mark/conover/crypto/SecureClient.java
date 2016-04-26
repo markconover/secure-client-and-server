@@ -3,17 +3,13 @@ package mark.conover.crypto;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +18,12 @@ import mark.conover.crypto.config.LoggingConfig;
 import mark.conover.crypto.util.SecureClientUtil;
 
 import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -77,7 +71,7 @@ public class SecureClient {
 		//postParams.add(new BasicNameValuePair("publicKey", CLIENT_PUBLIC_KEY));
 		postParams.add(new BasicNameValuePair("publicKey", "clientPublicKey"));
 		
-		String responseText = http.sendPost(url, postParams, null);
+		String responseText = http.sendPost(url, postParams, "");
 		
 		String serverPublicKeyFilePath = null;
 		if (responseText.contains("serverPublicKeyFile:")) {
@@ -113,9 +107,54 @@ public class SecureClient {
 		LOG.debug("The enrypted AES shared symmetric key using the " 
 				+ "server's public key is: '{}'", 
 				encryptedAesKeyString);
+//		
+//		
+//		
+//		
+//		
+//		
+//		// First verify that client can decrypt the encrypted aes key with the
+//		// server's private key here.  If it can, then bytes may be being
+//		// altered during transmission
+//        PrivateKey serverPrivateKey = null;
+//        try {
+//            serverPrivateKey = FileEncryption2.readPrivateKey(
+//                "/etc/opt/secure-server/rsa-keys/server-private-key_2048.der");
+//        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+//            LOG.error("Unable to read server's private key from file " +
+//                "path '{}'", 
+//                "/etc/opt/secure-server/rsa-keys/server-private-key_2048.der", 
+//                e);
+//        }
+//        
+//        byte[] aesKeyBytes = null;
+//        try {
+//            aesKeyBytes = FileEncryption2.decrypt(serverPrivateKey, 
+//                    encryptedAesKey);
+//        } catch (InvalidKeyException | NoSuchAlgorithmException
+//                | NoSuchPaddingException | IllegalBlockSizeException
+//                | BadPaddingException e) {
+//
+//            LOG.error("Unable to decrypt the encrypted AES key using the " +
+//                "server's private key.", e);
+//        }
+//        
+//        String aesKey = null;
+//        if (aesKeyBytes != null) {
+//            aesKey = new String(aesKeyBytes, Charsets.UTF_8);
+//            
+//            LOG.debug("The AES Symmetric key from client is: '{}'", aesKey);
+//        }
+        
+        
+        
+        
+        
+        
+        
 		
 		// TODO: Add client's public key here
-        responseText = http.sendPost(url + "?aesSymmetricKeyIncluded=yes&publicKey=clientPublicKey", postParams, encryptedAesKeyString);
+        responseText = http.sendPost(url + "?aesSymmetricKeyIncluded=yes&publicKey=clientPublicKey", postParams, encryptedAesKey);
         if (responseText.contains("Got the AES symmetric key.")) {
             // TODO: Send messages to server now but encrypt them using 
             //       AES128.java and the AES symmetric key.
@@ -220,6 +259,95 @@ public class SecureClient {
 		return responseText;
 		
 	}
+	
+	private String sendPost(String url, List<NameValuePair> postParams, 
+	        byte[] bodyContent) 
+	        throws ClientProtocolException, IOException {
+	        
+	        HttpPost post = new HttpPost(url);
+
+	        // add header
+//	      post.setHeader("Host", "accounts.google.com");
+//	      post.setHeader("User-Agent", USER_AGENT);
+//	      post.setHeader("Accept", 
+//	               "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+//	      post.setHeader("Accept-Language", "en-US,en;q=0.5");
+//	      post.setHeader("Cookie", getCookies());
+//	      post.setHeader("Connection", "keep-alive");
+//	      post.setHeader("Referer", "https://accounts.google.com/ServiceLoginAuth");
+//	      post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+	        post.setEntity(new UrlEncodedFormEntity(postParams));
+	        
+	        if (bodyContent != null) {
+	            HttpEntity entity = new ByteArrayEntity(
+	                bodyContent);
+	            post.setEntity(entity);
+	        }
+
+	        HttpResponse response = client.execute(post);
+
+	        int responseCode = response.getStatusLine().getStatusCode();
+
+	        LOG.debug("\nSending 'POST' request to URL : " + url);
+	        LOG.debug("Post parameters : " + postParams);
+	        LOG.debug("Response Code : " + responseCode);
+	        
+	        if (response.containsHeader("Content-Disposition")) {
+	            
+	            // Save server's public key file
+	            LOG.debug("Saving server's public key file...");
+	            InputStream is = response.getEntity().getContent();
+	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	            if (is != null) {
+	    
+	                FileOutputStream fos = null;
+	                BufferedOutputStream bos = null;
+	                byte[] aByte = new byte[1];
+	                int bytesRead;
+	                try {
+	                    fos = new FileOutputStream(
+	                        "/etc/opt/secure-client/server-public-key_2048.der");
+	                    bos = new BufferedOutputStream(fos);
+	                    bytesRead = is.read(aByte, 0, aByte.length);
+	    
+	                    do {
+	                        baos.write(aByte);
+	                        bytesRead = is.read(aByte);
+	                    } while (bytesRead != -1);
+	    
+	                    bos.write(baos.toByteArray());
+	                    bos.flush();
+	                } catch (IOException e) {
+	                    // Do exception handling
+	                    LOG.debug("Unable to save server's public key file received " + 
+	                        "by the server.", e);
+	                } finally {
+	                    SecureClientUtil.safeClose(bos);
+	                    SecureClientUtil.safeClose(baos);
+	                    SecureClientUtil.safeClose(is);
+	                    SecureClientUtil.safeClose(fos);
+	                }
+	            }
+	            
+	            return "serverPublicKeyFile:/etc/opt/secure-client/server-public-key_2048.der";
+	        }
+	        
+	        // Get the response text from the server
+	        BufferedReader rd = new BufferedReader(
+	        new InputStreamReader(response.getEntity().getContent()));
+	        StringBuffer result = new StringBuffer();
+	        String line = "";
+	        while ((line = rd.readLine()) != null) {
+	            result.append(line);
+	        }
+	        
+	        String responseText = result.toString();
+	        System.out.println("Response from server:" + responseText);
+	        
+	        return responseText;
+	        
+    }
 
 	public List<NameValuePair> getFormParams(String html, String username,
 			String password) throws UnsupportedEncodingException {
