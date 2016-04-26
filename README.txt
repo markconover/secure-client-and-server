@@ -2,50 +2,19 @@ The client/server encrypt messages a shared AES symmetric key via the following
 process:
 1. Server generates public key and a private key using openssl
     * Cygwin OpenSSL version 1.0.2c 12 Jun 2015 (Mark-Desktop = server)
-        ** Private key
-            *** OpenSSL> genrsa -des3 -out server-private-key.key 1024
-            *** passphrase = "changeit" (without quotes)
-            *** -----BEGIN RSA PRIVATE KEY-----
-                Proc-Type: 4,ENCRYPTED
-                DEK-Info: DES-EDE3-CBC,D74B899844498677
-                
-                QhWLYiELF36qeCBctxZhC49NSHS3yUaoNF/ZkmlewQN3u8JBOJgxFQVVaaBbW13B
-                /vLdTAdr0YvkPMQ2x2IctVALGwhR8V5vScnT7W79ucWJyPJmBXwF3dFnDmyhW/Kw
-                jyDctk8XKZkhXcm3efiDLJIEkxim3A22T3awlziKcsBlvPxUzTt2gWU3kyTSwUOa
-                84KvkgPQ67hXKjzXo9XGUq/IHNMeEBBI3HibLzPCSPyPNBqZrP457hjwrF+TyXBI
-                iexo4S8MNjvDsJCRzR+71Xbex/8LvtUkwq+tChnAeX03QIHkndIHpS2QvW8Gndew
-                9uLhb2J33k6VRzkZPyar4hitKkTJOMAS4OH+hyDdY8U7kkcK7jvdBa+umqZO62tW
-                zTfxa0aLhzpoAhPTupqCZWi3BkwW7EzS5XhYfIE4Yrx7nVx8nptCfLFei6U6qhW6
-                mryB5r9fYYDOoc+Iya2lQ58A5a/FHIuU0W870x1gkdXTxGowiaqTWqLZ8+2xCKdM
-                la8Wpff6VwxWfmeORm1FvuSsWGrI9Vgq6zkrV2V//HjRd/zzogsfkfD6FGa+QgCr
-                hJny//6Cl50iGMKeX8BJbOQHo4CLE7iuevJCTK24dt0tq3D5SrUfPrVb9/adIP1m
-                MnDFol4WeUUpBs5zjzVZY3HwqFl4lIr8aDL/3V+uLQCnJtYevfEgBYagerxngXbs
-                gTE87pIrsClE+R4IpEDJB43vuUiqoZtJ8m3nlcYfxiqyTgM9Gsvc8VnfTZ/a4ktR
-                3ETgfa/1nT3msFzo4KRZMmxfMst5vpX2xlvpd7deLwolNKh7pUp/5Q==
-                -----END RSA PRIVATE KEY-----
-        ** Public key (generate a public key from the private key 
-           "server-private-key.key")
-            *** $ openssl rsa -in server-private-key.key -pubout > server-public-key.pub
-                Enter pass phrase for server.key:
-                writing RSA key
-                -----BEGIN PUBLIC KEY-----
-                MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDFXhbyBYhSPaf1tOJlGWWcFdrG
-                A8C7xY9UmigBQdSoEdSzc+1GgYKxughwVuXEkdWq13lyfwXVxI40xPrZ7lux387t
-                7yTr/+mDYQOjdp8qvZ5coUa901iTnVJSFulhK+/0PFnYYAZ1wwgo4bkrStMBtJw1
-                7jSpjOT3SDSLgTbOiQIDAQAB
-                -----END PUBLIC KEY-----
-            
-            
+        ** Generate public key file and private key file via the following openssl commands:
+            *** $ openssl genrsa -out server-keypair_2048.pem 2048
+            *** $ openssl rsa -in server-keypair_2048.pem -outform DER -pubout -out server-public-key_2048.der
+            *** $ openssl pkcs8 -topk8 -nocrypt -in server-keypair_2048.pem -outform DER -out server-private-key_2048.der
+        ** Backed up keys in /secure-server-war/src/main/resources/rsa-keys
+           
 2. Client generates public key and a private key using openssl.
     * Cygwin OpenSSL version 1.0.2c 12 Jun 2015 (Mark-Desktop = client)
-        ** Private key
-            *** OpenSSL> genrsa -des3 -out client-private-key.key 1024
-            *** passphrase = "changeit" (without quotes)
-                ** Public key (generate a public key from the private key 
-        ** Public key (generate a public key from the private key 
-           "client-private-key.key"
-            *** $ openssl rsa -in client-private-key.key -pubout > client-public-key.pub
-        
+        ** Generate public key file and private key file via the following openssl commands:
+            *** $ openssl genrsa -out client-keypair_2048.pem 2048
+            *** $ openssl rsa -in client-keypair_2048.pem -outform DER -pubout -out client-public-key_2048.der
+            *** $ openssl pkcs8 -topk8 -nocrypt -in client-keypair_2048.pem -outform DER -out client-private-key_2048.der
+        ** Backed up keys in /secure-client-jar/src/main/resources/rsa-keys
     
 3. Server sends the server's public key to the client.
 4. Client encrypts the client's public key with the server's public key and

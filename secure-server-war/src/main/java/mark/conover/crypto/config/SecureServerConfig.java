@@ -21,12 +21,15 @@ public class SecureServerConfig implements ServletContextListener {
         "/etc/opt/secure-server/config.properties";
     
     // Properties
-    public static final String PROP_PUBLIC_KEY = "publicKey";
+    public static final String PROP_PUBLIC_KEY_FILE_PATH = "publicKeyFilePath";
+    public static final String PROP_PRIVATE_KEY_FILE_PATH = 
+		"privateKeyFilePath";
     
     private static final Logger LOG = LoggerFactory.getLogger(
             SecureServerConfig.class);
     
-    public static String SECURE_SERVER_PUBLIC_KEY = null;
+    public static String SECURE_SERVER_PUBLIC_KEY_FILE_PATH = null;
+    public static String SECURE_SERVER_PRIVATE_KEY_FILE_PATH = null;
     
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
@@ -46,8 +49,11 @@ public class SecureServerConfig implements ServletContextListener {
 
             LOG.debug("Loaded configuration file '{}'", configFilePath);
             if (propertiesConfig != null) {
-                SECURE_SERVER_PUBLIC_KEY = 
-                    propertiesConfig.getString("publicKey");
+                SECURE_SERVER_PUBLIC_KEY_FILE_PATH = 
+                    propertiesConfig.getString(PROP_PUBLIC_KEY_FILE_PATH);
+                SECURE_SERVER_PRIVATE_KEY_FILE_PATH = 
+                        propertiesConfig.getString(PROP_PRIVATE_KEY_FILE_PATH);
+                
             }
         } else {
             LOG.debug("configuration file '{}' does not exist.", 

@@ -2,19 +2,31 @@ package mark.conover.crypto.servlets;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import mark.conover.crypto.FileEncryption2;
 import mark.conover.crypto.config.SecureServerConfig;
 import mark.conover.crypto.util.SecureServerUtil;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,25 +89,82 @@ public class SecureServerServlet extends HttpServlet {
 		
 		LOG.debug("Received the following doPost body content: {}", body);
 		
-		String aesSymmetricKey = null;
-		if (body.contains("AES Symmetric Key:")) {
-			aesSymmetricKey = body.split(":")[1];
+		String encryptedAesKey = null;
+		if (body.contains("Encrypted AES Symmetric Key:")) {
+			encryptedAesKey = body.split(":")[1];
 			
-			LOG.debug("Received the following AES symmetric key from client: {}", 
-				aesSymmetricKey);
+			LOG.debug("Encrypted AES Symmetric Key from client is: '{}'", 
+				encryptedAesKey);
+			byte[] encryptedAesKeyBytes = encryptedAesKey.getBytes(
+				Charsets.UTF_8);
+			
+			PrivateKey serverPrivateKey = null;
+			try {
+				serverPrivateKey = FileEncryption2.readPrivateKey(
+				SecureServerConfig.SECURE_SERVER_PRIVATE_KEY_FILE_PATH);
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				LOG.error("Unable to read server's private key from file " +
+					"path '{}'", 
+					SecureServerConfig.SECURE_SERVER_PRIVATE_KEY_FILE_PATH, e);
+			}
+			
+			byte[] aesKeyBytes = null;
+			try {
+				aesKeyBytes = FileEncryption2.decrypt(serverPrivateKey, 
+					encryptedAesKeyBytes);
+			} catch (InvalidKeyException | NoSuchAlgorithmException
+					| NoSuchPaddingException | IllegalBlockSizeException
+					| BadPaddingException e) {
+
+				LOG.error("Unable to decrypt the encrypted AES key using the " +
+					"server's private key.", e);
+			}
+
+			String aesKey = null;
+			if (aesKeyBytes != null) {
+				aesKey = new String(aesKeyBytes, Charsets.UTF_8);
+				
+				LOG.debug("The AES Symmetric key from client is: '{}'", aesKey);
+			}
+			
+			if (aesKey != null) {
+				// Tell the client the AES symmetric key was successfully 
+				// received
+		        BufferedOutputStream bos = new BufferedOutputStream(
+		                resp.getOutputStream());
+		        IOUtils.write("Encrypted message using the AES key:" + 
+		            "Got the AES symmetric key.", bos, 
+		            "UTF-8");
+		        bos.flush();
+		        
+		        SecureServerUtil.safeClose(bos);
+			}
 			
 			// TODO: Start sending messages to client but encrypting them first
-			//       with the AES symmetric key
-		}
+			// with the AES symmetric key
+		} else {
 		
-		// Send the server's public key back
-        BufferedOutputStream bos = new BufferedOutputStream(
-                resp.getOutputStream());
-        IOUtils.write("server public key: " + 
-            SecureServerConfig.SECURE_SERVER_PUBLIC_KEY, bos, "UTF-8");
-        bos.flush();
-        
-        SecureServerUtil.safeClose(bos);	
+			// Send the server's public key file back
+	        resp.setHeader("Content-Disposition", 
+	        		"attachment; filename=\"server-public-key_2048.der\""); 
+			File serverPublicKeyFile = new File(
+				SecureServerConfig.SECURE_SERVER_PUBLIC_KEY_FILE_PATH);
+			FileInputStream fis = new FileInputStream(serverPublicKeyFile);
+	        BufferedOutputStream bos = new BufferedOutputStream(
+	                resp.getOutputStream());
+	        
+	        try {
+		        IOUtils.copy(fis, bos);
+	//	        IOUtils.write("server public key: " + 
+	//	            SecureServerConfig.SECURE_SERVER_PUBLIC_KEY_FILE_PATH, bos, "UTF-8");
+	        } catch (IOException e) {
+	        	LOG.debug("Unable to copy server's public key file to HTTP " + 
+        			"response output stream.", e);
+	        } finally {
+		        SecureServerUtil.safeClose(fis);
+		        SecureServerUtil.safeClose(bos);
+	        }
+		}
 	}
 
 	public void destroy() {
