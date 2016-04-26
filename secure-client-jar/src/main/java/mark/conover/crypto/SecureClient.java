@@ -92,20 +92,20 @@ public class SecureClient {
 
 		//---------------------------------------------------------------------
 		
-		// Read in the server's public key file
-	    File serverPublicKeyFile = new File(serverPublicKeyFilePath);
-	    ObjectInputStream inputStream = new ObjectInputStream(
-            new FileInputStream(serverPublicKeyFile));
-	    final PublicKey serverPublicKey = (PublicKey) inputStream.readObject();
+		// Read in the server's public key file   
+	    PublicKey serverPublicKey = FileEncryption2.readPublicKey(
+    		serverPublicKeyFilePath);
         
         postParams = new ArrayList<NameValuePair>();
 		// TODO: Add client's public key here
 		//postParams.add(new BasicNameValuePair("publicKey", CLIENT_PUBLIC_KEY));
+		postParams.add(new BasicNameValuePair("aesSymmetricKeyIncluded", 
+				"yes"));
 		postParams.add(new BasicNameValuePair("publicKey", "clientPublicKey"));
         
         // Add symmetric key in HTTP POST content body
-		byte[] message = ("AES Symmetric Key:" + AES_128_SYMMETRIC_KEY
-				).getBytes("UTF8");
+		byte[] message = (AES_128_SYMMETRIC_KEY
+				).getBytes(Charsets.UTF_8);
 		byte[] encryptedAesKey = FileEncryption2.encrypt(serverPublicKey, 
 			message);
 		String encryptedAesKeyString = new String(encryptedAesKey, 
@@ -114,7 +114,8 @@ public class SecureClient {
 				+ "server's public key is: '{}'", 
 				encryptedAesKeyString);
 		
-        responseText = http.sendPost(url, postParams, encryptedAesKeyString);
+		// TODO: Add client's public key here
+        responseText = http.sendPost(url + "?aesSymmetricKeyIncluded=yes&publicKey=clientPublicKey", postParams, encryptedAesKeyString);
         if (responseText.contains("Got the AES symmetric key.")) {
             // TODO: Send messages to server now but encrypt them using 
             //       AES128.java and the AES symmetric key.
@@ -152,7 +153,7 @@ public class SecureClient {
 		
 		if (bodyContent != null) {
             HttpEntity entity = new ByteArrayEntity(
-                bodyContent.getBytes("UTF-8"));
+                bodyContent.getBytes(Charsets.UTF_8));
             post.setEntity(entity);
 		}
 

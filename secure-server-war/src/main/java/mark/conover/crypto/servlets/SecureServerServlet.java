@@ -60,7 +60,8 @@ public class SecureServerServlet extends HttpServlet {
 			throws ServletException, IOException {
 		
 		LOG.debug("doPost() method has been called.");
-		String clientPublicKey = req.getParameter("publicKey");		
+		String clientPublicKey = req.getParameter("publicKey");
+		String aesParam = req.getParameter("aesSymmetricKeyIncluded");
 		
 		LOG.debug("Client's publicKey is: " + clientPublicKey);	
 		
@@ -89,13 +90,11 @@ public class SecureServerServlet extends HttpServlet {
 		
 		LOG.debug("Received the following doPost body content: {}", body);
 		
-		String encryptedAesKey = null;
-		if (body.contains("Encrypted AES Symmetric Key:")) {
-			encryptedAesKey = body.split(":")[1];
+		if (aesParam != null && aesParam.equals("yes")) {
 			
 			LOG.debug("Encrypted AES Symmetric Key from client is: '{}'", 
-				encryptedAesKey);
-			byte[] encryptedAesKeyBytes = encryptedAesKey.getBytes(
+				body);
+			byte[] encryptedAesKeyBytes = body.getBytes(
 				Charsets.UTF_8);
 			
 			PrivateKey serverPrivateKey = null;
@@ -134,7 +133,7 @@ public class SecureServerServlet extends HttpServlet {
 		                resp.getOutputStream());
 		        IOUtils.write("Encrypted message using the AES key:" + 
 		            "Got the AES symmetric key.", bos, 
-		            "UTF-8");
+		            Charsets.UTF_8);
 		        bos.flush();
 		        
 		        SecureServerUtil.safeClose(bos);
